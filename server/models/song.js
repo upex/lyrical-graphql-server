@@ -25,6 +25,16 @@ SongSchema.statics.addLyric = function(id, content) {
     });
 }
 
+SongSchema.statics.removeLyric = function(id, lyricId) {
+  const Lyric = mongoose.model('lyric');
+
+  return this.findById(id)
+    .then(async song => {
+      await Lyric.remove({ _id: lyricId });
+      return song;
+    });
+}
+
 SongSchema.statics.findLyrics = function(id) {
   return this.findById(id)
     .populate('lyrics')
