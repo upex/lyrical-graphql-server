@@ -1,57 +1,40 @@
 const graphql = require('graphql');
-const { GraphQLObjectType, GraphQLString, GraphQLID } = graphql;
-const mongoose = require('mongoose');
-const Song = mongoose.model('song');
-const Lyric = mongoose.model('lyric');
-const SongType = require('./song_type');
-const LyricType = require('./lyric_type');
+const {
+  GraphQLObjectType,
+  GraphQLString
+} = graphql;
+const AuthService = require('../services/auth');
+const UserType = require('./types/user_type');
 
 const mutation = new GraphQLObjectType({
   name: 'Mutation',
   fields: {
-    addSong: {
-      type: SongType,
-      args: {
-        title: { type: GraphQLString }
+      signup: {
+        type: UserType,
+        args: {
+          email: { type: GraphQLString },
+          password: { type: GraphQLString }
+        },
+        resolve(parentValue, { email, password }, req) {
+          return AuthService.signup({ email, password, req });
+        }
       },
-      resolve(parentValue, { title }) {
-        return (new Song({ title })).save()
-      }
-    },
-    addLyricToSong: {
-      type: SongType,
-      args: {
-        content: { type: GraphQLString },
-        songId: { type: GraphQLID }
+      login: {
+        type: UserType,
+        args: {
+          email: { type: GraphQLString },
+          password: { type: GraphQLString }
+        },
+        resolve(parentValue, { email, password }, req) {
+          return AuthService.login({ email, password, req });
+        }
       },
-      resolve(parentValue, { content, songId }) {
-        return Song.addLyric(songId, content);
+      logout: {
+        type: UserType,
+        resolve(parentvalue, args, req) {
+          return AuthService.logout({req});
+        }
       }
-    },
-    removeLyricFromSong: {
-      type: SongType,
-      args: {
-        songId: { type: GraphQLID },
-        lyricId: { type: GraphQLID }
-      },
-      resolve(parentValue, { songId, lyricId }) {
-        return Song.removeLyric(songId, lyricId );
-      }
-    },
-    likeLyric: {
-      type: LyricType,
-      args: { id: { type: GraphQLID } },
-      resolve(parentValue, { id }) {
-        return Lyric.like(id);
-      }
-    },
-    deleteSong: {
-      type: SongType,
-      args: { id: { type: GraphQLID } },
-      resolve(parentValue, { id }) {
-        return Song.remove({ _id: id });
-      }
-    }
   }
 });
 
